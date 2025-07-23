@@ -7,8 +7,10 @@ const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const morgan = require("morgan");
 const MongoStore = require("connect-mongo");
+
 const passUserToView = require("./middleware/pass-user-to-view.js");
 const isSignedIn = require("./middleware/is-signed-in.js");
+
 const authController = require("./controllers/auth.js");
 
 // Connect to MongoDB
@@ -44,6 +46,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/auth', authController);
+app.use(isSignedIn);
 
 // 404 handler
 app.use((req, res) => {
