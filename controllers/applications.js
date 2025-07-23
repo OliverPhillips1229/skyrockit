@@ -1,0 +1,13 @@
+// controllers/applications.js
+
+const express = require('express');
+const router = express.Router();
+
+const User = require('../models/user.js');
+
+// we will build out our router logic here
+
+
+module.exports = router;
+// Export the router to be used in server.js
+

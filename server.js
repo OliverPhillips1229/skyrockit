@@ -7,6 +7,8 @@ const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const morgan = require("morgan");
 const MongoStore = require("connect-mongo");
+const applicationsController = require('./controllers/applications.js');
+
 
 const passUserToView = require("./middleware/pass-user-to-view.js");
 const isSignedIn = require("./middleware/is-signed-in.js");
