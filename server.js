@@ -49,6 +49,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', authController);
 app.use(isSignedIn);
+app.use('/users/:userId/applications', applicationsController);
 
 // 404 handler
 app.use((req, res) => {
