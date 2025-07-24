@@ -10,18 +10,35 @@ router.get("/sign-up", (req, res) => {
 
 // POST /auth/sign-up
 router.post("/sign-up", async (req, res) => {
-  const { username, password, confirmPassword } = req.body;
-  if (password !== confirmPassword) {
-    return res.send("Password and Confirm Password must match");
+  try {
+    const { username, password, confirmPassword } = req.body;
+    
+    // Validation
+    if (!username || !password || !confirmPassword) {
+      return res.status(400).send("All fields are required.");
+    }
+    
+    if (password !== confirmPassword) {
+      return res.status(400).send("Password and Confirm Password must match");
+    }
+    
+    if (password.length < 6) {
+      return res.status(400).send("Password must be at least 6 characters long.");
+    }
+    
+    const userInDatabase = await User.findOne({ username });
+    if (userInDatabase) {
+      return res.status(400).send("Username already taken.");
+    }
+    
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const user = await User.create({ username, password: hashedPassword });
+    req.session.user = { username: user.username, _id: user._id };
+    res.redirect("/");
+  } catch (error) {
+    console.error("Sign-up error:", error);
+    res.status(500).send("An error occurred during sign-up. Please try again.");
   }
-  const userInDatabase = await User.findOne({ username });
-  if (userInDatabase) {
-    return res.send("Username already taken.");
-  }
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  const user = await User.create({ username, password: hashedPassword });
-  req.session.user = { username: user.username, _id: user._id };
-  res.redirect("/");
 });
 
 // GET /auth/sign-in
@@ -31,17 +48,29 @@ router.get("/sign-in", (req, res) => {
 
 // POST /auth/sign-in
 router.post("/sign-in", async (req, res) => {
-  const { username, password } = req.body;
-  const userInDatabase = await User.findOne({ username });
-  if (!userInDatabase) {
-    return res.send("Login failed. Please try again.");
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).send("Username and password are required.");
+    }
+    
+    const userInDatabase = await User.findOne({ username });
+    if (!userInDatabase) {
+      return res.status(400).send("Login failed. Please try again.");
+    }
+    
+    const validPassword = bcrypt.compareSync(password, userInDatabase.password);
+    if (!validPassword) {
+      return res.status(400).send("Login failed. Please try again.");
+    }
+    
+    req.session.user = { username: userInDatabase.username, _id: userInDatabase._id };
+    res.redirect("/");
+  } catch (error) {
+    console.error("Sign-in error:", error);
+    res.status(500).send("An error occurred during sign-in. Please try again.");
   }
-  const validPassword = bcrypt.compareSync(password, userInDatabase.password);
-  if (!validPassword) {
-    return res.send("Login failed. Please try again.");
-  }
-  req.session.user = { username: userInDatabase.username, _id: userInDatabase._id };
-  res.redirect("/");
 });
 
 // GET /auth/sign-out

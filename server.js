@@ -11,6 +11,7 @@ const MongoStore = require("connect-mongo");
 
 const passUserToView = require("./middleware/pass-user-to-view.js");
 const isSignedIn = require("./middleware/is-signed-in.js");
+const isOwner = require("./middleware/is-owner.js");
 
 const authController = require("./controllers/auth.js");
 const applicationsController = require('./controllers/applications.js');
@@ -23,6 +24,9 @@ mongoose.connection.on("connected", () => {
 mongoose.connection.on("error", (err) => {
   console.error("MongoDB connection error:", err);
 });
+
+// Set view engine
+app.set('view engine', 'ejs');
 
 // Middleware
 app.use(express.urlencoded({ extended: false }));
@@ -54,7 +58,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', authController);
 app.use(isSignedIn);
-app.use('/users/:userId/applications', applicationsController);
+app.use('/users/:userId/applications', isOwner, applicationsController);
 
 // 404 handler
 app.use((req, res) => {
